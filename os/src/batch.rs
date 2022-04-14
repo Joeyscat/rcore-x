@@ -60,7 +60,7 @@ impl AppManager {
         debug!("[kernel] num_app = {}", self.num_app);
         for i in 0..self.num_app {
             debug!(
-                "[kernel] app{} [{:#x}, {:#x}",
+                "[kernel] app{} [{:#x}, {:#x})",
                 i,
                 self.app_start[i],
                 self.app_start[i + 1]
