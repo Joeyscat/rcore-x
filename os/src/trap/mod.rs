@@ -33,7 +33,11 @@ pub fn trap_handler(ctx: &mut TrapContext) -> &mut TrapContext {
             ctx.x[10] = syscall(ctx.x[17], [ctx.x[10], ctx.x[11], ctx.x[12]]) as usize;
         }
         Trap::Exception(Exception::StoreFault) | Trap::Exception(Exception::StorePageFault) => {
-            debug!("[kernel] PageFault in application, kernel killed it.");
+            debug!("[kernel] StorePageFault in application, kernel killed it.");
+            run_next_app();
+        }
+        Trap::Exception(Exception::LoadFault) | Trap::Exception(Exception::LoadPageFault) => {
+            debug!("[kernel] LoadPageFault in application, kernel killed it.");
             run_next_app();
         }
         Trap::Exception(Exception::IllegalInstruction) => {
