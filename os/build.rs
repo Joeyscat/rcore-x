@@ -5,20 +5,20 @@ fn main() {
     println!("cargo:rerun-if-changed=../user/src/");
     println!("cargo:rerun-if-changed={}", TARGET_PATH);
 
-    insert_add_data().unwrap();
+    insert_app_data().unwrap();
 }
 
 static TARGET_PATH: &str = "../user/target/riscv64gc-unknown-none-elf/release/";
 
-fn insert_add_data() -> Result<()> {
+fn insert_app_data() -> Result<()> {
     let mut f = File::create("src/link_app.S").unwrap();
     let mut apps: Vec<_> = read_dir("../user/src/bin")
         .unwrap()
         .into_iter()
         .map(|dir_entry| {
-            let mut name_witg_ext = dir_entry.unwrap().file_name().into_string().unwrap();
-            name_witg_ext.drain(name_witg_ext.find(".").unwrap()..name_witg_ext.len());
-            name_witg_ext
+            let mut name_with_ext = dir_entry.unwrap().file_name().into_string().unwrap();
+            name_with_ext.drain(name_with_ext.find(".").unwrap()..name_with_ext.len());
+            name_with_ext
         })
         .collect();
     apps.sort();

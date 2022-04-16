@@ -39,8 +39,8 @@ else ifeq ($(BOARD), k210)
 endif
 
 env:
-	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
 	cargo install cargo-binutils --vers =0.3.3
+	rustup target add riscv64gc-unknown-none-elf
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
 
@@ -91,13 +91,6 @@ debug: build
 		tmux -2 attach-session -d
 
 # ************************************************
-xrun: build
-	@qemu-system-riscv64 \
-		-machine virt \
-		-nographic \
-		-bios ../bootloader/rustsbi-qemu.bin \
-		-device loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000 \
-		# -s -S
 xgdb:
 	@riscv64-unknown-elf-gdb \
 		-ex 'file target/riscv64gc-unknown-none-elf/release/os' \
