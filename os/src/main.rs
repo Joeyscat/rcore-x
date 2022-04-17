@@ -1,17 +1,17 @@
 //! The main module and entrypoint
-//! 
+//!
 //! Various facilities of the kernels are implemented as submodules. The most
 //! important ones are:
-//! 
+//!
 //! - [`trap`]: Handles all cases of switching from userspace to the kernel
 //! - [`task`]: Task management
 //! - [`syscall`]: System call handling nad implementation
-//! 
+//!
 //! The operating system also starts in this module. Kernel code starts
 //! executing from `entry.asm`, after which [`rust_main()`] is called to
 //! initialize various pieces of functionality. (See its source code for
 //! details.)
-//! 
+//!
 //! We then call [`task::run_first_task()`] and for the first time go to
 //! userspace.
 
@@ -21,9 +21,16 @@
 #![no_main]
 #![feature(panic_info_message)] // PanicInfo::message 获取报错信息需要
 
-use core::{arch::global_asm};
+use core::arch::global_asm;
 use log::{debug, info, trace};
 
+
+#[cfg(any(feature = "board_k210"))]
+#[path ="boards/k210.rs"]
+mod board;
+#[cfg(not(any(feature = "board_k210")))]
+#[path ="boards/qemu.rs"]
+mod board;
 mod config;
 #[macro_use]
 mod console;
@@ -34,6 +41,7 @@ mod sbi;
 mod sync;
 pub mod syscall;
 pub mod task;
+mod timer;
 pub mod trap;
 
 global_asm!(include_str!("entry.asm"));
@@ -51,9 +59,13 @@ pub fn rust_main() -> ! {
     print_sections();
 
     trap::init();
-
     loader::load_apps();
+
+    trap::enable_timer_interrupt();
+    timer::set_next_trigger();
+
     task::run_first_task();
+    
     panic!("Unreachable in rust_main!");
 }
 
@@ -65,7 +77,7 @@ fn clear_bss() {
     }
     unsafe {
         core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
-        .fill(0);
+            .fill(0);
     }
 }
 
