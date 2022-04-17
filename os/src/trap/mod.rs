@@ -18,7 +18,7 @@ use crate::syscall::syscall;
 use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
 use crate::timer::set_next_trigger;
 use core::arch::global_asm;
-use log::{debug, error, trace};
+use log::{debug, error};
 
 use riscv::register::{
     mtvec::TrapMode,
@@ -52,11 +52,6 @@ pub fn trap_handler(ctx: &mut TrapContext) -> &mut TrapContext {
     let stval = stval::read(); // get extra value
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
-            trace!(
-                "[kernel] syscall({:?}, {:?})",
-                ctx.x[17],
-                [ctx.x[10], ctx.x[11], ctx.x[12]]
-            );
             ctx.spec += 4;
             ctx.x[10] = syscall(ctx.x[17], [ctx.x[10], ctx.x[11], ctx.x[12]]) as usize;
         }
