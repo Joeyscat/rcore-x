@@ -19,6 +19,7 @@ use crate::config::MAX_APP_NUM;
 use crate::loader::{get_num_app, init_app_ctx};
 use crate::sync::UPSafeCell;
 use lazy_static::*;
+use log::{trace};
 use switch::__switch;
 use task::{TaskControlBlock, TaskStatus};
 
@@ -80,6 +81,7 @@ impl TaskManager {
     fn run_first_task(&self) -> ! {
         let mut inner = self.inner.exclusive_access();
         let task0 = &mut inner.tasks[0];
+        trace!("run_first_task");
         task0.task_status = TaskStatus::Running;
         let next_task_ctx_ptr = &task0.task_ctx as *const TaskContext;
         drop(inner);
@@ -103,6 +105,7 @@ impl TaskManager {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Exited;
+        trace!("mark_current_exited {}", current);
     }
 
     /// Find next task to run and return app id.
