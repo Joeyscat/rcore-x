@@ -19,7 +19,7 @@ for app in apps:
     with open(linker, 'w+') as f:
         f.writelines(lines)
     os.system('cargo build --bin %s --release' % app)
-    print('[build.py] application %s start with address %s' % (app, hex(base_address+step*app_id)))
+    print('[build.py] application %s start with address %s' %(app, hex(base_address+step*app_id)))
     with open(linker, 'w+') as f:
         f.writelines(lines_before)
-    app_id = app_id+1
+    app_id = app_id + 1

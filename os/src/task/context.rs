@@ -4,7 +4,7 @@
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TaskContext {
-    /// return address (e.g. __restore) of __switch ASM function
+    /// return address ( e.g. __restore ) of __switch ASM function
     ra: usize,
     /// kernel stack pointer of app
     sp: usize,

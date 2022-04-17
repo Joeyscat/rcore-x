@@ -20,7 +20,7 @@ __alltraps:
     sd x3, 3*8(sp)
     # skip tp(x4), application does not use it
     # save x5~31
-    .set n,5
+    .set n, 5
     .rept 27
         SAVE_GP %n
         .set n, n+1
@@ -40,7 +40,6 @@ __alltraps:
 __restore:
     # case1: start running app by __restore
     # case2: back to U after handling trap
-    mv sp, a0
     # now sp->kernel stack(after allocated), sscratch->user stack
     # restore sstatus/sepc
     ld t0, 32*8(sp)
@@ -58,7 +57,7 @@ __restore:
         .set n, n+1
     .endr
     # release TrapContext on kernel stack
-    addi sp,sp, 34*8
+    addi sp, sp, 34*8
     # now sp->kernel stack, sscratch->user stack
     csrrw sp, sscratch, sp
     sret

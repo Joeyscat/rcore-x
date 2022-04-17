@@ -26,12 +26,9 @@ fn clear_bss() {
         fn start_bss();
         fn end_bss();
     }
-    (start_bss as usize..end_bss as usize).for_each(|addr| {
-        unsafe {
-            //
-            (addr as *mut u8).write_volatile(0);
-        }
-    })
+    (start_bss as usize..end_bss as usize).for_each(|addr| unsafe {
+        (addr as *mut u8).write_volatile(0);
+    });
 }
 
 use syscall::*;

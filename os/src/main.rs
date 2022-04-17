@@ -5,11 +5,11 @@
 //! 
 //! - [`trap`]: Handles all cases of switching from userspace to the kernel
 //! - [`task`]: Task management
-//! - [`syscall`]: System call handing nad implementation
+//! - [`syscall`]: System call handling nad implementation
 //! 
 //! The operating system also starts in this module. Kernel code starts
 //! executing from `entry.asm`, after which [`rust_main()`] is called to
-//! initialize various pieces of functionality. (See its source cde for
+//! initialize various pieces of functionality. (See its source code for
 //! details.)
 //! 
 //! We then call [`task::run_first_task()`] and for the first time go to
@@ -63,13 +63,10 @@ fn clear_bss() {
         fn sbss();
         fn ebss();
     }
-    (sbss as usize..ebss as usize).for_each(|a| {
-        // unsafe
-        unsafe {
-            // 对bss段进行清零
-            (a as *mut u8).write_volatile(0)
-        }
-    })
+    unsafe {
+        core::slice::from_raw_parts_mut(sbss as usize as *mut u8, ebss as usize - sbss as usize)
+        .fill(0);
+    }
 }
 
 fn print_sections() {

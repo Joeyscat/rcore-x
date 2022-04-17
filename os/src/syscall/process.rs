@@ -1,6 +1,6 @@
 //! Process management syscalls
-use log::debug;
 use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
+use log::debug;
 
 /// task exits nad submit an exit code
 pub fn sys_exit(exit_code: i32) -> ! {
@@ -10,7 +10,7 @@ pub fn sys_exit(exit_code: i32) -> ! {
 }
 
 /// current task gives up resources for other tasks
-pub fn sys_yield()->isize {
+pub fn sys_yield() -> isize {
     suspend_current_and_run_next();
     0
 }

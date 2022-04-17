@@ -1,7 +1,7 @@
 //! Task management implementation
 //!
 //! Everything about task management, like starting and switching tasks is
-//! implemeted here.
+//! implemented here.
 //!
 //! A single global instance of [`TaskManager`] called `TASK_MANAGER` controls
 //! all the tasks in the operating system.
@@ -56,14 +56,16 @@ lazy_static! {
             task_ctx: TaskContext::zero_init(),
             task_status: TaskStatus::UnInit,
         }; MAX_APP_NUM];
-        for (i,task) in tasks.iter_mut().enumerate() {
+        for (i, task) in tasks.iter_mut().enumerate() {
             task.task_ctx = TaskContext::goto_restore(init_app_ctx(i));
             task.task_status = TaskStatus::Ready;
         }
         TaskManager {
-            num_app, inner: unsafe{
+            num_app,
+            inner: unsafe{
                 UPSafeCell::new(TaskManagerInner {
-                    tasks, current_task: 0,
+                    tasks,
+                    current_task: 0,
                 })
             },
         }
@@ -96,14 +98,14 @@ impl TaskManager {
         inner.tasks[current].task_status = TaskStatus::Ready;
     }
 
-    // Change the status of current `Running` task into `Exited`.
+    /// Change the status of current `Running` task into `Exited`.
     fn mark_current_exited(&self) {
         let mut inner = self.inner.exclusive_access();
         let current = inner.current_task;
         inner.tasks[current].task_status = TaskStatus::Exited;
     }
 
-    /// Find next task to run and return task id.
+    /// Find next task to run and return app id.
     ///
     /// In this case, we only return the first `Ready` task in task list.
     fn first_next_task(&self) -> Option<usize> {
@@ -142,17 +144,17 @@ pub fn run_first_task() {
 }
 
 /// run next task
-pub fn run_next_task() {
+fn run_next_task() {
     TASK_MANAGER.run_next_task();
 }
 
 /// suspend current task
-pub fn mark_current_suspended() {
+fn mark_current_suspended() {
     TASK_MANAGER.mark_current_suspended();
 }
 
 /// exit current task
-pub fn mark_current_exited() {
+fn mark_current_exited() {
     TASK_MANAGER.mark_current_exited();
 }
 
