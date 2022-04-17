@@ -6,9 +6,9 @@ KERNEL_BIN := $(KERNEL_ELF).bin
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 
 # BOARD
-BOARD ?= qemu
-SBI ?= rustsbi
-BOOTLOADER := ../bootloader/$(SBI)-$(BOARD).bin
+BOARD		?= qemu
+SBI			?= rustsbi
+BOOTLOADER	:= ../bootloader/$(SBI)-$(BOARD).bin
 K210_BOOTLOADER_SIZE := 131072
 
 # KERNEL ENTRY
@@ -20,7 +20,7 @@ endif
 
 # Run K210
 K210-SERIALPORT	= /dev/ttyUSB0
-K210-BURNER = ../tools/kflash.py
+K210-BURNER		= ../tools/kflash.py
 
 # Binutils
 OBJDUMP := rust-objdump --arch-name=riscv64
@@ -39,10 +39,10 @@ else ifeq ($(BOARD), k210)
 endif
 
 env:
-	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
-	cargo install cargo-binutils --vers =0.3.3
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
+	cargo install cargo-binutils --vers =0.3.3
+	rustup target add riscv64gc-unknown-none-elf
 
 $(KERNEL_BIN): kernel
 	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $@
@@ -65,6 +65,7 @@ disasm-vim: kernel
 	@vim $(DISASM_TMP)
 	@rm $(DISASM_TMP)
 
+# make run LOG=trace
 run: run-inner
 
 run-inner: build
@@ -81,7 +82,7 @@ else
 	@mv $(BOOTLOADER).copy $(KERNEL_BIN)
 	@sudo chmod 777 $(K210-SERIALPORT)
 	python3 $(K210-BURNER) -p $(K210-SERIALPORT) -b 1500000 $(KERNEL_BIN)
-	python3 -m serial.tools.miniterm --eol LF --dtr 0 --rts 0 --filter direct $(K210-SERIALPORT) 115200
+	python3 -m serial.tools.miniterm  --eol LF --dtr 0 --rts 0 --filter direct $(K210-SERIALPORT) 115200
 endif
 
 debug: build
@@ -89,20 +90,5 @@ debug: build
 		"qemu-system-riscv64 -machine virt -nographic -bios $(BOOTLOADER) -device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) -s -S" && \
 		tmux split-window -h "riscv64-unknown-elf-gdb -ex 'file $(KERNEL_ELF)' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'" && \
 		tmux -2 attach-session -d
-
-# ************************************************
-xrun: build
-	@qemu-system-riscv64 \
-		-machine virt \
-		-nographic \
-		-bios ../bootloader/rustsbi-qemu.bin \
-		-device loader,file=target/riscv64gc-unknown-none-elf/release/os.bin,addr=0x80200000 \
-		# -s -S
-xgdb:
-	@riscv64-unknown-elf-gdb \
-		-ex 'file target/riscv64gc-unknown-none-elf/release/os' \
-		-ex 'set arch riscv:rv64' \
-		-ex 'target remote localhost:1234'
-# ************************************************
 
 .PHONY: build env kernel clean disasm disasm-vim run-inner switch-check

@@ -1,13 +1,16 @@
-//! App management syscalls
-
-use crate::batch::run_next_app;
+//! Process management syscalls
+use crate::task::{exit_current_and_run_next, suspend_current_and_run_next};
 use log::debug;
 
-/// 功能：退出应用程序并将返回值告知批处理系统。
-/// 参数：`exit_code` 表示应用程序的返回值。
-/// 返回值：该系统调用不应该返回。
-/// syscall ID：93
+/// task exits nad submit an exit code
 pub fn sys_exit(exit_code: i32) -> ! {
     debug!("[kernel] Application exited with code {}", exit_code);
-    run_next_app()
+    exit_current_and_run_next();
+    panic!("Unreachable in sys_exit!");
+}
+
+/// current task gives up resources for other tasks
+pub fn sys_yield() -> isize {
+    suspend_current_and_run_next();
+    0
 }
