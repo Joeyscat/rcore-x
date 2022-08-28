@@ -27,10 +27,9 @@ extern crate alloc;
 #[macro_use]
 extern crate bitflags;
 
-use core::arch::global_asm;
-use log::{debug, info, trace};
+use log::{info, trace};
 
-#[cfg(any(feature = "board_k210"))]
+#[cfg(feature = "board_k210")]
 #[path = "boards/k210.rs"]
 mod board;
 #[cfg(not(any(feature = "board_k210")))]
@@ -51,33 +50,8 @@ pub mod task;
 mod timer;
 pub mod trap;
 
-global_asm!(include_str!("entry.asm"));
-global_asm!(include_str!("link_app.S"));
-
-/// the rust entry-point of os
-#[no_mangle]
-pub fn rust_main() -> ! {
-    clear_bss();
-    logging::init();
-    trace!("clear bss finish");
-    trace!("logging init bss finish");
-
-    debug!("[kernel] Hello, world!");
-    mm::init();
-    debug!("[kernel] back to world!");
-    mm::remap_test();
-
-    trap::init();
-    trap::enable_timer_interrupt();
-
-    timer::set_next_trigger();
-
-    task::run_first_task();
-
-    print_sections();
-
-    panic!("Unreachable in rust_main!");
-}
+core::arch::global_asm!(include_str!("entry.asm"));
+core::arch::global_asm!(include_str!("link_app.S"));
 
 /// clear BSS segment
 fn clear_bss() {
@@ -91,6 +65,31 @@ fn clear_bss() {
     }
 }
 
+/// the rust entry-point of os
+#[no_mangle]
+pub fn rust_main() -> ! {
+    clear_bss();
+
+    println!("[kernel] Hello, world!");
+    mm::init();
+    println!("[kernel] back to world!");
+    mm::remap_test();
+
+    trap::init();
+    trap::enable_timer_interrupt();
+    timer::set_next_trigger();
+
+    logging::init();
+    trace!("logging init bss finish");
+
+    task::run_first_task();
+
+    // print_sections();
+
+    panic!("Unreachable in rust_main!");
+}
+
+#[allow(unused)]
 fn print_sections() {
     extern "C" {
         fn stext();

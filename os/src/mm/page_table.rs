@@ -21,7 +21,7 @@ bitflags! {
 
 #[derive(Clone, Copy)]
 #[repr(C)]
-/// page table entry structrue
+/// page table entry structure
 pub struct PageTableEntry {
     pub bits: usize,
 }

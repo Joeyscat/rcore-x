@@ -1,19 +1,23 @@
+//! SBI call wrappers
+
 use core::arch::asm;
 
 const SBI_SET_TIMER: usize = 0;
 const SBI_CONSOLE_PUTCHAR: usize = 1;
+#[cfg(feature = "board_k210")]
+const SBI_SHUTDOWN: usize = 8;
 // const SBI_CONSOLE_GETCHAR: usize = 2;
 // const SBI_CLEAR_IPI: usize = 3;
 // const SBI_SEND_IPI: usize = 4;
 // const SBI_REMOTE_FENCE_I: usize = 5;
 // const SBI_REMOTE_SFENCE_VMA: usize = 6;
 // const SBI_REMOTE_SFENCE_VMA_ASID: usize = 7;
-const SBI_SHUTDOWN: usize = 8;
 
 // which: 请求RustSBI的服务的类型
 // arg0~arg2: 传递给RustSBI的个参数
 // return: RustSBI的返回值
 #[inline(always)]
+/// general sbi call
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let mut ret;
     unsafe {
@@ -23,7 +27,7 @@ fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
             in("x11") arg1,
             in("x12") arg2,
             in("x17") which,
-        )
+        );
     }
     ret
 }
@@ -38,8 +42,16 @@ pub fn console_putchar(c: usize) {
     sbi_call(SBI_CONSOLE_PUTCHAR, c, 0, 0);
 }
 
+#[cfg(feature = "board_qemu")]
+use crate::board::QEMUExit;
 /// use sbi call to shutdown the kernel
 pub fn shutdown() -> ! {
+    #[cfg(feature = "board_k210")]
     sbi_call(SBI_SHUTDOWN, 0, 0, 0);
+
+    #[cfg(feature = "board_qemu")]
+    crate::board::QEMU_EXIT_HANDLE.exit_failure();
+
+    #[cfg(feature = "board_k210")]
     panic!("It should shutdown!");
 }

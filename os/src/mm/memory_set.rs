@@ -216,7 +216,7 @@ impl MemorySet {
                 user_stack_bottom.into(),
                 user_stack_top.into(),
                 MapType::Framed,
-                MapPermission::R | MapPermission::W,
+                MapPermission::R | MapPermission::W | MapPermission::U,
             ),
             None,
         );
@@ -376,5 +376,5 @@ pub fn remap_test() {
         .unwrap()
         .executable(),);
 
-    println!("remap_test passed!")
+    println!("remap_test passed!");
 }
