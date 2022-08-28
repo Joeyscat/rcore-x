@@ -20,23 +20,30 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)] // PanicInfo::message 获取报错信息需要
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
+
+#[macro_use]
+extern crate bitflags;
 
 use core::arch::global_asm;
 use log::{debug, info, trace};
 
-
 #[cfg(any(feature = "board_k210"))]
-#[path ="boards/k210.rs"]
+#[path = "boards/k210.rs"]
 mod board;
 #[cfg(not(any(feature = "board_k210")))]
-#[path ="boards/qemu.rs"]
+#[path = "boards/qemu.rs"]
 mod board;
+
 mod config;
 #[macro_use]
 mod console;
 mod lang_items;
 mod loader;
 mod logging;
+mod mm;
 mod sbi;
 mod sync;
 pub mod syscall;
@@ -55,17 +62,20 @@ pub fn rust_main() -> ! {
     trace!("clear bss finish");
     trace!("logging init bss finish");
 
-    debug!("Hello, World!");
-    print_sections();
+    debug!("[kernel] Hello, world!");
+    mm::init();
+    debug!("[kernel] back to world!");
+    mm::remap_test();
 
     trap::init();
-    loader::load_apps();
-
     trap::enable_timer_interrupt();
+
     timer::set_next_trigger();
 
     task::run_first_task();
-    
+
+    print_sections();
+
     panic!("Unreachable in rust_main!");
 }
 
@@ -98,4 +108,7 @@ fn print_sections() {
     info!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
     info!(".bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
     // info("load range : [%d, %d] start = %d\n", s, e, start);
+
+    // mm::init_heap();
+    // mm::heap_test();
 }
